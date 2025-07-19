@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  customer-api:
+    build: 
+      context: ./mock-services
+      dockerfile: Dockerfile.customer
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=customer-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+  order-api:
+    build:
+      context: ./mock-services  
+      dockerfile: Dockerfile.order
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=order-api
+      - CUSTOMER_API_URL=http://customer-api:8001
+    depends_on:
+      - customer-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+  inventory-api:
+    build:
+      context: ./mock-services
+      dockerfile: Dockerfile.inventory  
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=inventory-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
